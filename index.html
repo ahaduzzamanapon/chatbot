@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatbot App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+        }
+
+        #chatbox {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .chatlog {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chatlog p {
+            margin: 5px 0;
+            word-wrap: break-word;
+        }
+
+        .user-message, .chatbot-reply {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            max-width: 70%;
+        }
+
+        .user-message.active, .chatbot-reply.active {
+            opacity: 1;
+            transform: translateY(0);
+            margin: 2px;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: #007bff;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 10px;
+        }
+
+        .chatbot-reply {
+            align-self: flex-start;
+            background-color: #eaeaea;
+            padding: 5px 10px;
+            border-radius: 10px;
+        }
+
+        #userInput {
+            width: 78%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 6px;
+        }
+
+        #sendButton {
+            width: 14%;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #sendButton:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="chatbox">
+        <div class="chatlog" id="chatlog"></div>
+        <div>
+            <input type="text" id="userInput" placeholder="Type your message..." />
+            <button id="sendButton" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        function appendMessage(sender, message, isUserMessage) {
+            var chatlog = document.getElementById('chatlog');
+            var messageDiv = document.createElement('div');
+
+            if (isUserMessage) {
+                messageDiv.className = 'user-message message-anim';
+            } else {
+                messageDiv.className = 'chatbot-reply message-anim';
+            }
+            if(sender== 'Chatbot'){
+            var senderElement = document.createElement('b');
+            senderElement.textContent = sender + ': ';
+            } else {
+                var senderElement = document.createElement('b');
+            senderElement.textContent ='';
+            }
+
+            var messageElement = document.createElement('span');
+            messageElement.textContent = message;
+
+            messageDiv.appendChild(senderElement);
+            messageDiv.appendChild(messageElement);
+            chatlog.appendChild(messageDiv);
+
+            // Trigger animation by adding the 'active' class after a short delay
+            setTimeout(function() {
+                messageDiv.classList.add('active');
+            }, 10);
+
+            chatlog.scrollTop = chatlog.scrollHeight;
+        }
+
+        function sendMessage() {
+            var userInput = document.getElementById('userInput').value;
+            if (userInput.trim() !== '') {
+                appendMessage('You', userInput, true);
+
+                // Send user input to the server
+                fetch('http://127.0.0.1:5000/get_response', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 'user_input': userInput }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ask_for_answer) {
+                        // Prompt user for an answer and save it on the server
+                        var userAnswer = prompt(data.response);
+                        if (userAnswer.trim() !== '') {
+                            // Send user response to the server for saving
+                            fetch('http://127.0.0.1:5000/save_response', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    'user_input': userInput,
+                                    'user_response': userAnswer,
+                                }),
+                            })
+                            .then(() => {
+                                // Display the chatbot's response after saving user response
+                                fetch('http://127.0.0.1:5000/get_response', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({ 'user_input': userAnswer }),
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    appendMessage('Chatbot', data.response, false);
+                                });
+                            });
+                        } else {
+                            // If the user response is empty, directly display chatbot's response
+                            appendMessage('Chatbot', data.response, false);
+                        }
+                    } else {
+                        appendMessage('Chatbot', data.response, false);
+                    }
+                });
+
+                document.getElementById('userInput').value = '';
+            }
+        }
+
+        // Add an event listener to detect Enter key press in the input field
+        document.getElementById('userInput').addEventListener('keyup', function(event) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
