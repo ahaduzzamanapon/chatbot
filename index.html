@@ -2,31 +2,49 @@
 <html>
 <head>
     <title>Chatbot App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-BjxuQ+L7iGc+cUvKcoBGkvWMiALbYJOp3zKE0EXsKJTRahwdeWvIKe6xdhLArkiGqQW3veEJ3rN2TTbWlpw0Gg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
+        /* Common styles */
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f3f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
         }
 
         #chatbox {
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            width: 400px;
+            max-width: 100%;
+            height: 600px;
             background-color: #fff;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
         }
 
         .chatlog {
-            height: 300px;
+            flex: 1;
             overflow-y: auto;
-            border: 1px solid #ccc;
             padding: 10px;
             margin-bottom: 10px;
-            background-color: #f9f9f9;
             display: flex;
             flex-direction: column;
+            border-radius: 20px;
+            scrollbar-width: thin;
+            background-color: #f0f3f8;
+        }
+
+        .chatlog::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chatlog::-webkit-scrollbar-thumb {
+            background-color: #7b68ee;
+            border-radius: 8px;
         }
 
         .chatlog p {
@@ -34,68 +52,214 @@
             word-wrap: break-word;
         }
 
-        .user-message, .chatbot-reply {
+        .user-message,
+        .chatbot-reply {
             opacity: 0;
             transform: translateY(10px);
             transition: opacity 0.3s ease, transform 0.3s ease;
-            max-width: 70%;
+            max-width: 80%;
         }
 
-        .user-message.active, .chatbot-reply.active {
+        .user-message.active,
+        .chatbot-reply.active {
             opacity: 1;
             transform: translateY(0);
-            margin: 2px;
+            margin: 5px 0;
         }
 
         .user-message {
+            position: relative;
             align-self: flex-end;
-            background-color: #007bff;
+            background-color: #7b68ee;
             color: #fff;
-            padding: 5px 10px;
-            border-radius: 10px;
+            padding: 15px;
+            border-radius: 20px 20px 3px 20px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            animation: fadeInRight 0.3s forwards;
         }
 
         .chatbot-reply {
+            position: relative;
             align-self: flex-start;
-            background-color: #eaeaea;
-            padding: 5px 10px;
-            border-radius: 10px;
+            background-color: #9370db;
+            color: #fff;
+            padding: 15px;
+            border-radius: 20px 20px 20px 3px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            animation: fadeInLeft 0.3s forwards;
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            background-color: #7b68ee;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         #userInput {
-            width: 78%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            width: 76%;
+            padding: 15px;
+            border: none;
+            border-bottom: 2px solid #7b68ee;
+            border-radius: 0;
             margin-bottom: 6px;
+            font-size: 16px;
+            outline: none;
+            background-color: #f0f3f8;
+            color: #333;
         }
 
         #sendButton {
             width: 14%;
-            padding: 10px;
-            background-color: #007bff;
+            padding: 12px;
+            background-color: #7b68ee;
             color: #fff;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.2s ease;
         }
 
         #sendButton:hover {
-            background-color: #0056b3;
+            background-color: #9370db;
+        }
+
+        ::placeholder {
+            color: #aaa;
+        }
+
+        /* Custom scrollbar */
+        .chatlog::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chatlog::-webkit-scrollbar-thumb {
+            background-color: #7b68ee;
+            border-radius: 8px;
+        }
+
+        /* Sweet dark theme */
+        .sweet-dark {
+            background-color: #292929;
+            color: #ffffff;
+        }
+
+        .sweet-dark #chatbox {
+            background-color: #292929;
+        }
+
+        .sweet-dark .chatlog {
+            background-color: #3a3a3a;
+        }
+
+        .sweet-dark .user-message {
+            background-color: #7b68ee;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .sweet-dark .chatbot-reply {
+            background-color: #9370db;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .sweet-dark #userInput {
+            border-bottom: 2px solid #7b68ee;
+            background-color: #292929;
+            color: #ffffff;
+        }
+
+        .sweet-dark #sendButton {
+            background-color: #7b68ee;
+        }
+
+        /* White theme */
+        .white-theme {
+            background-color: #f0f3f8;
+            color: #333;
+        }
+
+        .white-theme #chatbox {
+            background-color: #f0f3f8;
+        }
+
+        .white-theme .chatlog {
+            background-color: #f6f9fc;
+        }
+
+        .white-theme .user-message {
+            background-color: #7b68ee;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .white-theme .chatbot-reply {
+            background-color: #9370db;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .white-theme #userInput {
+            border-bottom: 2px solid #7b68ee;
+            background-color: #f0f3f8;
+            color: #333;
+        }
+
+        .white-theme #sendButton {
+            background-color: #7b68ee;
+        }
+
+        /* Responsive styles for mobile devices */
+        @media (max-width: 768px) {
+            #chatbox {
+                max-width: 90%;
+                height: 80vh;
+            }
         }
     </style>
 </head>
-<body>
+<body class="sweet-dark">
     <div id="chatbox">
         <div class="chatlog" id="chatlog"></div>
         <div>
             <input type="text" id="userInput" placeholder="Type your message..." />
-            <button id="sendButton" onclick="sendMessage()">Send</button>
+            <button id="sendButton" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> Send</button>
+            <button id="themeSwitchButton" onclick="toggleTheme()"><i class="fas fa-adjust"></i> Switch Theme</button>
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js" integrity="sha512-VKy/FQctS20zno4GdBSpxkFZjG0m6Bop4w4t4hKpV0ffymPMVZTKo59wjlACc3v0rkpqJvSDp8X0lMMp23xnw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
+        let isSweetDark = true;
+
         function appendMessage(sender, message, isUserMessage) {
             var chatlog = document.getElementById('chatlog');
             var messageDiv = document.createElement('div');
@@ -105,13 +269,9 @@
             } else {
                 messageDiv.className = 'chatbot-reply message-anim';
             }
-            if(sender== 'Chatbot'){
+
             var senderElement = document.createElement('b');
-            senderElement.textContent = sender + ': ';
-            } else {
-                var senderElement = document.createElement('b');
             senderElement.textContent ='';
-            }
 
             var messageElement = document.createElement('span');
             messageElement.textContent = message;
@@ -192,6 +352,18 @@
                 sendMessage();
             }
         });
+
+        function toggleTheme() {
+            const body = document.body;
+            isSweetDark = !isSweetDark;
+            if (isSweetDark) {
+                body.classList.remove('white-theme');
+                body.classList.add('sweet-dark');
+            } else {
+                body.classList.remove('sweet-dark');
+                body.classList.add('white-theme');
+            }
+        }
     </script>
 </body>
 </html>

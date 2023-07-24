@@ -1,4 +1,3 @@
-import pickle
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
@@ -35,17 +34,20 @@ class SelfLearningChatbot:
             return None
 
     def save_model(self, file_path):
-        with open(file_path, 'wb') as file:
-            pickle.dump(self.knowledge_base, file)
+        with open(file_path, 'w') as file:
+            for question, answer in self.knowledge_base.items():
+                file.write(f"{question}:::{answer}\n")
 
     def load_model(self, file_path):
         if not os.path.exists(file_path):
             self.save_model(file_path)  # Create the file if it doesn't exist
-        with open(file_path, 'rb') as file:
-            self.knowledge_base = pickle.load(file)
+        with open(file_path, 'r') as file:
+            for line in file:
+                question, answer = line.strip().split(":::")
+                self.knowledge_base[question.lower()] = answer
 
 # File path to store the knowledge base
-knowledge_base_file = "knowledge_base.pkl"
+knowledge_base_file = "knowledge_base.txt"
 
 # Create the chatbot instance and load the model if available
 chatbot = SelfLearningChatbot()
