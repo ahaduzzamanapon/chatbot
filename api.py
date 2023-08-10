@@ -64,7 +64,7 @@ def get_response():
     data = request.get_json()
     user_input = data['user_input']
 
-    response = chatbot.get_similar_response(user_input, similarity_threshold=0.8)
+    response = chatbot.get_similar_response(user_input, similarity_threshold=0.7)
 
     if response is None:
         # If no similar response found, ask for user response
